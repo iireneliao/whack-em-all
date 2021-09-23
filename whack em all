@@ -1,0 +1,573 @@
+/* global createCanvas, colorMode, HSB, color, noStroke, fill, noFill, strokeWeight, background, text, stroke,
+line, width, height, rect, textSize, loadImage, image, noCursor, collidePointPoint, createImg, loadSound, img, startGame
+Matter, Ground, width, height, Box, Bird, SlingShot, pixelDensity, key, clear, textAlign, CENTER
+loadFont, textFont, collideRectRect, random, img
+*/
+
+// Names: Irene, Niharika, Sristi
+
+const { Engine, World, Bodies, Mouse, MouseConstraint, Constraint } = Matter;
+
+let backgroundColor, bgStart, bgLvl1, bgLvl2, bgLvl3, bgLvl4, gameOver;
+let startButton;
+let score, time, tries;
+let ground, bird, slingshot;
+const boxes = [];
+let world, engine, mConstraint;
+let title, titleBg, lvlTitle;
+let angryBird, slingS, pig;
+let strtScrn, lvlScrn, lvl1Scrn, lvl1Button, lvl2Button, lvl3Button, lvl4Button;
+let lvl2Scrn, lvl3Scrn, lvl4Scrn;
+let helpButton, resetButton, homeButton, exitButton, helpFrameButton;
+let myFont, pigX, bgSound, pigSound;
+let startHover;
+let rectX, rectY;
+let helpToggle, directImg, helpImg;
+let mousePressedSound;
+let birdSound;
+let directImgX, directImgY;
+let lvl1Comp, lvl2Comp, lvl3Comp, lvl4Comp;
+let lvl2LockButton, lvl3LockButton, lvl4LockButton;
+
+function preload() {
+  bgSound = loadSound(
+    "https://cdn.glitch.com/da14c7a9-033a-4944-a0e0-d50377dbabe2%2FAngry%20Birds%20Theme%20Song.mp3?v=1628004209374"
+  );
+  pigSound = loadSound(
+    "https://cdn.glitch.com/da14c7a9-033a-4944-a0e0-d50377dbabe2%2FBAD%20PIGGIES%20Original%20Theme%20song%20(HD)%20Soundtrack.mp3?v=1628004242056"
+  );
+  mousePressedSound = loadSound(
+    "https://cdn.glitch.com/6118a777-c431-4ee9-8677-835ba6a2cf21%2FPlay%20Button%20Sound.mp3?v=1628085709504"
+  );
+  birdSound = loadSound(
+    "https://cdn.glitch.com/616173f6-7de9-40e8-b83a-fabbc0c5fad2%2FAngry%20Bird%20Sound.mp3?v=1628171507106"
+  );
+}
+
+function setup() {
+  const canvas = createCanvas(750, 400);
+  pigX = 550;
+  engine = Engine.create();
+  world = engine.world;
+  ground = new Ground(width / 2, height - 10, width, 20);
+  bird = new Bird(200, 300, 25);
+  slingshot = new SlingShot(200, 300, bird.body);
+
+  const mouse = Mouse.create(canvas.elt);
+  const options = {
+    mouse: mouse
+  };
+
+  mouse.pixelRatio = pixelDensity();
+  mConstraint = MouseConstraint.create(engine, options);
+  World.add(world, mConstraint);
+
+  backgroundColor = 95;
+  colorMode(HSB, 360, 100, 100);
+  score = 0;
+  tries = 0;
+
+  angryBird = loadImage(
+    "https://cdn.glitch.com/da14c7a9-033a-4944-a0e0-d50377dbabe2%2Fangrbird.gif?v=1628003702129"
+  );
+  slingS = loadImage(
+    "https://cdn.glitch.com/da14c7a9-033a-4944-a0e0-d50377dbabe2%2FTransparent_Slingshot_I.png?v=1627998160353"
+  );
+  myFont = loadFont(
+    "https://cdn.glitch.com/da14c7a9-033a-4944-a0e0-d50377dbabe2%2FFEASFBI_.TTF?v=1627997420871"
+  );
+  pig = loadImage(
+    "https://cdn.glitch.com/da14c7a9-033a-4944-a0e0-d50377dbabe2%2Fd61khw0-6aeffe82-60c5-436f-9263-20fcc23247f3.gif?v=1627997772477"
+  );
+
+  // Background Images Load
+  gameOver = loadImage(
+    "https://cdn.glitch.com/616173f6-7de9-40e8-b83a-fabbc0c5fad2%2Fgameover.jpeg?v=1628170604371"
+  );
+  bgStart = loadImage(
+    "https://cdn.glitch.com/fa53c496-3b3a-484c-ba42-2aad149f9052%2FSky%20Background%20For%20Video%20Conference%20Design.jpeg?v=1627915179525"
+  );
+  titleBg = loadImage(
+    "https://cdn.glitch.com/da14c7a9-033a-4944-a0e0-d50377dbabe2%2FScreenshot_2021-08-03_10.39.01_AM-removebg-preview.png?v=1628001578240"
+  );
+  bgLvl1 = loadImage(
+    "https://cdn.glitch.com/da14c7a9-033a-4944-a0e0-d50377dbabe2%2Flvl1.jpg?v=1627999075740"
+  );
+  bgLvl2 = loadImage(
+    "https://cdn.glitch.com/6118a777-c431-4ee9-8677-835ba6a2cf21%2Fgamebg.jpeg?v=1628088755415"
+  );
+  bgLvl3 = loadImage(
+    "https://cdn.glitch.com/6118a777-c431-4ee9-8677-835ba6a2cf21%2Fgamebg2.jpeg?v=1628088755567"
+  );
+  bgLvl4 = loadImage(
+    "https://cdn.glitch.com/6118a777-c431-4ee9-8677-835ba6a2cf21%2Fgamebg3.jpeg?v=1628088756662"
+  );
+
+  // Button Load
+  startButton = createImg(
+    "https://cdn.glitch.com/da14c7a9-033a-4944-a0e0-d50377dbabe2%2FUntitled_Artwork-removebg-preview.png?v=1628003234263"
+  );
+  startButton.size(200, 80);
+  startButton.position(285, 290);
+  startButton.mousePressed(startGame);
+  startButton.hide();
+
+  lvl1Button = createImg(
+    "https://cdn.glitch.com/da14c7a9-033a-4944-a0e0-d50377dbabe2%2FUntitled_Artwork__2_-removebg-preview.png?v=1628004547608"
+  );
+  lvl1Button.size(80, 80);
+  lvl1Button.position(100, height / 3);
+  lvl1Button.mousePressed(lvl1);
+  lvl1Button.hide();
+
+  lvl2Button = createImg(
+    "https://cdn.glitch.com/da14c7a9-033a-4944-a0e0-d50377dbabe2%2FUntitled_Artwork__3_-removebg-preview.png?v=1628004905144"
+  );
+  lvl2Button.size(80, 80);
+  lvl2Button.position(260, height / 3);
+  lvl2Button.mousePressed(lvl2);
+  lvl2Button.hide();
+
+  lvl2LockButton = createImg(
+    "https://cdn.glitch.com/616173f6-7de9-40e8-b83a-fabbc0c5fad2%2Flocked.png?v=1628174689859"
+  );
+  lvl2LockButton.size(80, 80);
+  lvl2LockButton.position(260, height / 3);
+  lvl2LockButton.mousePressed(uncompleted);
+  lvl2LockButton.hide();
+
+  lvl3Button = createImg(
+    "https://cdn.glitch.com/da14c7a9-033a-4944-a0e0-d50377dbabe2%2FUntitled_Artwork__4_-removebg-preview.png?v=1628004913291"
+  );
+  lvl3Button.size(80, 80);
+  lvl3Button.position(410, height / 3);
+  lvl3Button.mousePressed(lvl3);
+  lvl3Button.hide();
+
+  lvl3LockButton = createImg(
+    "https://cdn.glitch.com/616173f6-7de9-40e8-b83a-fabbc0c5fad2%2Flocked.png?v=1628174689859"
+  );
+  lvl3LockButton.size(80, 80);
+  lvl3LockButton.position(410, height / 3);
+  lvl3LockButton.mousePressed(uncompleted);
+  lvl3LockButton.hide();
+
+  lvl4Button = createImg(
+    "https://cdn.glitch.com/da14c7a9-033a-4944-a0e0-d50377dbabe2%2FUntitled_Artwork__5_-removebg-preview.png?v=1628004908558"
+  );
+  lvl4Button.size(80, 80);
+  lvl4Button.position(570, height / 3);
+  lvl4Button.mousePressed(lvl4);
+  lvl4Button.hide();
+
+  lvl4LockButton = createImg(
+    "https://cdn.glitch.com/616173f6-7de9-40e8-b83a-fabbc0c5fad2%2Flocked.png?v=1628174689859"
+  );
+  lvl4LockButton.size(80, 80);
+  lvl4LockButton.position(570, height / 3);
+  lvl4LockButton.mousePressed(uncompleted);
+  lvl4LockButton.hide();
+
+  helpButton = createImg(
+    "https://cdn.glitch.com/da14c7a9-033a-4944-a0e0-d50377dbabe2%2FUntitled_Artwork__6_-removebg-preview.png?v=1628005178689"
+  );
+  helpButton.size(70, 70);
+  helpToggle = false;
+  helpButton.position(680, height / 25);
+  helpButton.mousePressed(helperT);
+  helpButton.hide();
+
+  homeButton = createImg(
+    "https://cdn.glitch.com/616173f6-7de9-40e8-b83a-fabbc0c5fad2%2FScreenshot_2021-08-03_10.53.38_AM-removebg-preview%20(1).png?v=1628178207435 "
+  );
+  homeButton.size(70, 70);
+  homeButton.position(600, height / 25);
+  homeButton.mousePressed(mainScreen);
+  homeButton.hide();
+
+  resetButton = createImg(
+    "https://cdn.glitch.com/6118a777-c431-4ee9-8677-835ba6a2cf21%2FScreenshot_2021-08-03_10.53.38_AM-removebg-preview.png?v=1628084625506"
+  );
+  resetButton.size(70, 70);
+  resetButton.position(680, 100);
+  resetButton.mousePressed(refreshGame);
+  resetButton.hide();
+
+  // exitButton = createImg("https://cdn.glitch.com/6118a777-c431-4ee9-8677-835ba6a2cf21%2FScreenshot_2021-08-03_10.54.24_AM-removebg-preview.png?v=1628091976877");
+  // exitButton.size(70, 70);
+  // exitButton.position(300, 100);
+  // exitButton.mousePressed(exitHelper);
+  // exitButton.hide();
+
+  directImg = loadImage(
+    "https://cdn.glitch.com/6118a777-c431-4ee9-8677-835ba6a2cf21%2FUntitled%20drawing.png?v=1628085863847"
+  );
+  directImgX = 1000;
+  directImgY = 1000;
+
+  helpFrameButton = createImg(
+    "https://cdn.glitch.com/616173f6-7de9-40e8-b83a-fabbc0c5fad2%2FUntitled%20drawing%20(1).png?v=1628171401248"
+  );
+  helpFrameButton.position(100, 20);
+  helpFrameButton.size(550, 360);
+  helpFrameButton.hide();
+  helpFrameButton.mousePressed(hideHelpFrame);
+
+  // Frame Maneuvering
+  strtScrn = true;
+  lvlScrn = false;
+  startHover = false;
+
+  bgSound.setVolume(0.0625);
+  bgSound.play();
+
+  lvl1Comp = false;
+  lvl2Comp = false;
+  lvl3Comp = false;
+  lvl4Comp = false;
+}
+
+function birdPressed() {
+  if (bird.pressed) {
+    birdSound.play();
+  }
+}
+
+function keyPressed() {
+  if (key == " ") {
+    World.remove(world, bird.body);
+    bird = new Bird(150, 300, 25);
+    birdSound.play();
+    slingshot.attach(bird.body);
+    tries += 1;
+  }
+}
+
+function mouseReleased() {
+  setTimeout(() => {
+    slingshot.fly();
+  }, 100);
+}
+
+function draw() {
+  clear();
+
+  helpImg = {
+    x: random(width / 3 - 2, width / 3 + 2),
+    y: random(height / 3 - 2, height / 3 + 2),
+    w: width / 6,
+    h: height / 6
+  };
+
+  if (strtScrn) {
+    background(bgStart);
+    startButton.show();
+    image(titleBg, 200, 15, 350, 250);
+    textSize(75);
+    textFont(myFont);
+    strokeWeight(3);
+    fill("white");
+    title = text("Whack \nEm All", 280, 117);
+    helpButton.hide();
+    resetButton.hide();
+    homeButton.hide();
+  } else if (lvlScrn) {
+    background(bgStart);
+    resetButton.hide();
+    homeButton.hide();
+    lvlTitle = text("Level Selector", 155, 80);
+    lvl1Button.show();
+
+    if (lvl1Comp) {
+      lvl2Button.show();
+    } else {
+      lvl2LockButton.show();
+    }
+
+    if (lvl2Comp) {
+      lvl3Button.show();
+    } else {
+      lvl3LockButton.show();
+    }
+
+    if (lvl3Comp) {
+      lvl4Button.show();
+    } else {
+      lvl4LockButton.show();
+    }
+  } else if (lvl1Scrn) {
+    background(bgLvl1);
+    image(slingS, 180, 290, 50, 90);
+    handleScore();
+    bird.show();
+    birdPressed();
+    slingshot.show();
+    helpButton.show();
+    resetButton.show();
+    homeButton.show();
+
+    image(directImg, directImgX, directImgY, 500, 350);
+  } else if (lvl2Scrn) {
+    background(bgLvl2);
+    image(slingS, 180, 290, 50, 90);
+    handleScore();
+    bird.show();
+    slingshot.show();
+    helpButton.show();
+    resetButton.show();
+    homeButton.show();
+  } else if (lvl3Scrn) {
+    background(bgLvl3);
+    image(slingS, 180, 290, 50, 90);
+    handleScore();
+    bird.show();
+    slingshot.show();
+    helpButton.show();
+    resetButton.show();
+    homeButton.show();
+  } else if (lvl4Scrn) {
+    background(bgLvl4);
+    image(slingS, 180, 290, 50, 90);
+    handleScore();
+    bird.show();
+    slingshot.show();
+    helpButton.show();
+    resetButton.show();
+    homeButton.show();
+  }
+
+  Matter.Engine.update(engine);
+  ground.show();
+  for (let box of boxes) {
+    box.show();
+  }
+}
+
+// TRANSITIONS
+
+function startGame() {
+  mousePressedSound.play();
+  strtScrn = false;
+  lvlScrn = true;
+  lvl1Scrn = false;
+  startButton.hide();
+  helpButton.hide();
+  resetButton.show();
+  homeButton.show();
+  lvlTitle = text("Level Selector", 155, 80);
+}
+
+function lvl1() {
+  mousePressedSound.play();
+  strtScrn = false;
+  lvlScrn = false;
+  lvl1Scrn = true;
+  lvl2Scrn = false;
+  lvl3Scrn = false;
+  lvl4Scrn = false;
+  lvl1Button.hide();
+  lvl2Button.hide();
+  lvl3Button.hide();
+  lvl4Button.hide();
+  lvl4LockButton.hide();
+  lvl3LockButton.hide();
+  lvl2LockButton.hide();
+  handlePigs1();
+  handleBird();
+  handleScore();
+  bgSound.stop();
+  pigSound.setVolume(0.0625);
+  pigSound.play();
+  resetButton.show();
+  homeButton.show();
+}
+
+function lvl2() {
+  tries = 0;
+  score = 0;
+  mousePressedSound.play();
+  strtScrn = false;
+  lvlScrn = false;
+  lvl1Scrn = false;
+  lvl2Scrn = true;
+  lvl3Scrn = false;
+  lvl4Scrn = false;
+  lvl1Button.hide();
+  lvl2Button.hide();
+  lvl3Button.hide();
+  lvl4Button.hide();
+  lvl4LockButton.hide();
+  lvl3LockButton.hide();
+  lvl2LockButton.hide();
+  handlePigs2();
+  handleBird();
+  handleScore();
+  bgSound.stop();
+  pigSound.setVolume(0.0625);
+  pigSound.play();
+  resetButton.show();
+  homeButton.show();
+}
+
+function lvl3() {
+  tries = 0;
+  score = 0;
+  mousePressedSound.play();
+  lvlScrn = false;
+  lvl1Scrn = false;
+  lvl2Scrn = false;
+  lvl3Scrn = true;
+  lvl4Scrn = false;
+  lvl1Button.hide();
+  lvl2Button.hide();
+  lvl3Button.hide();
+  lvl4Button.hide();
+  lvl4LockButton.hide();
+  lvl3LockButton.hide();
+  lvl2LockButton.hide();
+  handlePigs3();
+  handleBird();
+  handleScore();
+  bgSound.stop();
+  pigSound.setVolume(0.0625);
+  pigSound.play();
+  resetButton.show();
+  homeButton.show();
+}
+
+function lvl4() {
+  tries = 0;
+  score = 0;
+  mousePressedSound.play();
+  lvlScrn = false;
+  lvl1Scrn = false;
+  lvl2Scrn = false;
+  lvl3Scrn = false;
+  lvl4Scrn = true;
+  lvl1Button.hide();
+  lvl2Button.hide();
+  lvl3Button.hide();
+  lvl4Button.hide();
+  lvl4LockButton.hide();
+  lvl3LockButton.hide();
+  lvl2LockButton.hide();
+  handlePigs4();
+  handleBird();
+  handleScore();
+  bgSound.stop();
+  pigSound.setVolume(0.0625);
+  pigSound.play();
+  resetButton.show();
+  homeButton.show();
+}
+
+function handleBird() {
+  slingshot = new SlingShot(208, 308, bird.body);
+  bird = new Bird(0, 0, 1);
+}
+
+function handlePigs1() {
+  for (let i = 0; i < 3; i++) {
+    boxes[i] = new Box(pigX, 300 - i * 50, 84, 100);
+  }
+}
+
+function handlePigs2() {
+  for (let i = 0; i < 4; i++) {
+    boxes[i] = new Box(pigX, 250 - i * 20, 84, 100);
+  }
+}
+
+function handlePigs3() {
+  for (let i = 0; i < 5; i++) {
+    boxes[i] = new Box(pigX, 250 - i * 20, 84, 100);
+  }
+}
+
+function handlePigs4() {
+  for (let i = 0; i < 6; i++) {
+    boxes[i] = new Box(pigX, 250 - i * 20, 84, 100);
+  }
+}
+
+function startEffect() {
+  startHover = true;
+}
+
+function helperT() {
+  mousePressedSound.play();
+  helpFrameButton.show();
+  homeButton.hide();
+  resetButton.hide();
+}
+
+function refreshGame() {
+  mousePressedSound.play();
+  score = 0;
+  tries = 0;
+  resetButton.hide();
+}
+
+function handleScore() {
+  for (let i = 0; i < boxes.length; i++) {
+    if (boxes[i].body.position.x >= 750) {
+      score += 1;
+    }
+
+    textSize(15);
+    text(
+      `Hint: Get all ${boxes.length} pigs down in ${boxes.length} tries!`,
+      10,
+      370
+    );
+  }
+
+  textSize(30);
+  strokeWeight(3);
+  fill("white");
+  text(`Tries: ${tries}`, 10, 30);
+
+  textSize(25);
+  text(`Press spacebar to start game!`, 10, 60);
+
+  if (tries > boxes.length) {
+    clear();
+    score.stop();
+    image(gameOver, 0, 0, 750, 400);
+    let acttries = tries - 1;
+    textSize(30);
+    fill("white");
+    //text(`You eliminated all the pigs in ${score} seconds!`, 150, 240);
+    text(`You eliminated all the pigs in ${acttries} tries!`, 150, 240);
+
+    textSize(70);
+    fill("white");
+    text(`Game over!`, 225, 170);
+
+    if (lvl1Scrn) {
+      lvl1Comp = true;
+    } else if (lvl2Scrn) {
+      lvl2Comp = true;
+    } else if (lvl3Scrn) {
+      lvl3Comp = true;
+    }
+  }
+}
+
+function mainScreen() {
+  mousePressedSound.play();
+  strtScrn = true;
+  lvlScrn = false;
+  lvl1Scrn = false;
+  lvl2Scrn = false;
+  lvl3Scrn = false;
+  lvl4Scrn = false;
+}
+
+function hideHelpFrame() {
+  mousePressedSound.play();
+  helpFrameButton.hide();
+  homeButton.show();
+}
+
+function uncompleted() {}
